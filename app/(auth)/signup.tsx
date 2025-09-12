@@ -1,5 +1,6 @@
+import CustomRadioButton from "@/components/CustomRadioButton";
 import Loader from "@/components/Loader";
-import { auth } from "@/config/firebaseAppConfig";
+import { auth, db } from "@/config/firebaseAppConfig";
 import { colors } from "@/constants/colors";
 import { useRouter } from "expo-router";
 import {
@@ -7,17 +8,18 @@ import {
   sendEmailVerification,
   updateProfile,
 } from "firebase/auth";
-import React, { useEffect, useState } from "react";
+import { ref, set } from "firebase/database";
+import { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
   Alert,
   BackHandler,
   Keyboard,
   KeyboardAvoidingView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function SignupScreen() {
@@ -25,6 +27,7 @@ export default function SignupScreen() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loader, setLoader] = useState<boolean>(false);
+  const [role, setRole] = useState<string>("User");
 
   const router: any = useRouter();
 
@@ -72,6 +75,15 @@ export default function SignupScreen() {
       await updateProfile(user, {
         displayName: name.trim(),
       });
+      let uid: any = user?.uid;
+
+      await set(ref(db, "users/" + uid), {
+        name: name.trim(),
+        email: email,
+        role: role,
+        createdAt: Date.now(),
+      });
+
       setLoader(false);
       router.push("/");
     } catch (error: any) {
@@ -114,7 +126,13 @@ export default function SignupScreen() {
           onChangeText={setPassword}
           secureTextEntry
         />
+        <Text style={styles.label}>Select User Type:</Text>
 
+        <CustomRadioButton
+          options={["User", "Reviewer"]}
+          selected={role}
+          onSelect={setRole}
+        />
         <View style={{ marginVertical: 20 }} />
 
         <TouchableOpacity style={styles.button} onPress={handleSignUp}>
@@ -164,4 +182,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
   },
+  label: { fontSize: 20, marginBottom: 10, color: colors.black },
 });
