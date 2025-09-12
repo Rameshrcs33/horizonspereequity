@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Horizonsphereequity",
-    "slug": "Horizonsphereequity",
+    "slug": "Hozizonsphereequity",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -23,7 +23,17 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.horizon.sphereequiry"
+      "package": "com.horizon.sphereequiry",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.READ_MEDIA_AUDIO",
+        "android.permission.READ_MEDIA_IMAGES"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -46,7 +56,10 @@
           "photosPermission": "Allow $(PRODUCT_NAME) to access your photos.",
           "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos.",
           "isAccessMediaLocationEnabled": true,
-          "granularPermissions": ["audio", "photo"]
+          "granularPermissions": [
+            "audio",
+            "photo"
+          ]
         }
       ],
       [
@@ -65,6 +78,7 @@
       "eas": {
         "projectId": "ba983714-f2e9-48b2-9a6a-3ebe918bf3ad"
       }
-    }
+    },
+    "owner": "rameshcs33"
   }
 }
