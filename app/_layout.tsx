@@ -3,8 +3,8 @@ import { colors } from "@/constants/colors";
 import * as Network from "expo-network";
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
-import { SafeAreaView, StatusBar } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { StatusBar } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 export default function RootLayout() {
   const [isConnected, setIsConnected] = useState(true);

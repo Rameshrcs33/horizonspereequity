@@ -1,21 +1,23 @@
 import { colors } from "@/constants/colors";
+import { LogedUser } from "@/hooks/LogedUser";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Image, View } from "react-native";
 
 export default function SplashScreen() {
   const router: any = useRouter();
-  
+  const { user } = LogedUser();
+
   useFocusEffect(() => {
+    goToLogin();
+  });
+
+  const goToLogin = async () => {
+    console.log("login user --------> ", user);
     let timeout = 0;
     clearTimeout(timeout);
     timeout = setTimeout(() => {
-      goToLogin();
+      router.push("/(auth)");
     }, 1500);
-  });
-
-
-  const goToLogin = () => {
-    router.push("/(auth)");
   };
 
   return (
