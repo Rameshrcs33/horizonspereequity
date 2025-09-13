@@ -13,3 +13,9 @@ export async function getData(key: string) {
   } catch (error) {}
   return data;
 }
+
+export async function removeData() {
+  try {
+    AsyncStorage.clear();
+  } catch (error) {}
+}

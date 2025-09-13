@@ -1,14 +1,14 @@
 import CustomRadioButton from "@/components/CustomRadioButton";
 import Loader from "@/components/Loader";
-import { auth, db } from "@/config/firebaseAppConfig";
+import { auth } from "@/config/firebaseAppConfig";
 import { colors } from "@/constants/colors";
+import { insertUserData } from "@/hooks/RealtimeDatabase";
 import { useRouter } from "expo-router";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
   updateProfile,
 } from "firebase/auth";
-import { ref, set } from "firebase/database";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -77,15 +77,17 @@ export default function SignupScreen() {
       });
       let uid: any = user?.uid;
 
-      await set(ref(db, "users/" + uid), {
+      const payload = {
         name: name.trim(),
         email: email,
         role: role,
         createdAt: Date.now(),
-      });
+      };
+
+      await insertUserData("users/" + uid, payload);
 
       setLoader(false);
-      router.push("/");
+      router.replace("/login");
     } catch (error: any) {
       setLoader(false);
       Alert.alert("Alert", JSON.stringify(error?.message));

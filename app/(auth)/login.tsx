@@ -1,12 +1,11 @@
 import Loader from "@/components/Loader";
-import { auth } from "@/config/firebaseAppConfig";
+import { auth, db } from "@/config/firebaseAppConfig";
 import { colors } from "@/constants/colors";
 import { saveData } from "@/hooks/asyncStorage";
+import { fetchUserData } from "@/hooks/RealtimeDatabase";
 import { useRouter } from "expo-router";
-import {
-  reload,
-  signInWithEmailAndPassword
-} from "firebase/auth";
+import { reload, signInWithEmailAndPassword } from "firebase/auth";
+import { get, ref } from "firebase/database";
 import { useState } from "react";
 import {
   Alert,
@@ -16,7 +15,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 export default function LoginScreen() {
@@ -56,55 +55,70 @@ export default function LoginScreen() {
         return;
       }
     }
-    setLoader(false);
-    let res = auth.currentUser;
+    let res: any = auth.currentUser;
     saveData("email", res?.email);
     saveData("name", res?.displayName);
-    router.push("/(userhome)");
+    saveData("uid", res?.uid);
+    saveData("accessToken", res?.stsTokenManager?.accessToken);
+    const responseData: any = await fetchUserData(res?.uid);
+    setLoader(false);
+    if (!responseData) {
+      Alert.alert("Alert", "No user data found!");
+      return;
+    }
+
+    if (responseData?.role == "Reviewer") {
+      router.replace("/(adminhome)");
+    }
+    if (responseData?.role == "User") {
+      router.replace("/(userhome)");
+    }
   };
 
   return (
-    <KeyboardAvoidingView style={{flex: 1}}
-    behavior={"height"}
-    keyboardVerticalOffset={0}>
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
-      <View style={{ marginVertical: 30 }} />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={"height"}
+      keyboardVerticalOffset={0}
+    >
+      <View style={styles.container}>
+        <Text style={styles.title}>Login</Text>
+        <View style={{ marginVertical: 30 }} />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#888"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          placeholderTextColor="#888"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#888"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <View style={{ marginVertical: 10 }} />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor="#888"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        <View style={{ marginVertical: 10 }} />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
-      <View style={{ marginVertical: 20 }} />
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
+        <View style={{ marginVertical: 20 }} />
 
-      <TouchableOpacity
-        style={[styles.button, styles.signup]}
-        onPress={() => router.push("/signup")}
-      >
-        <Text style={styles.buttonText}>Sign Up</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, styles.signup]}
+          onPress={() => router.push("/signup")}
+        >
+          <Text style={styles.buttonText}>Sign Up</Text>
+        </TouchableOpacity>
 
-      <Loader Visible={loader} />
-    </View>
+        <Loader Visible={loader} />
+      </View>
     </KeyboardAvoidingView>
   );
 }

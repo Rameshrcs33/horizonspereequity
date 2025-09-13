@@ -1,5 +1,6 @@
 import NoInternet from "@/components/NoInternet";
 import { colors } from "@/constants/colors";
+import { AuthProvider } from "@/context/AuthContext";
 import * as Network from "expo-network";
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
@@ -35,13 +36,15 @@ export default function RootLayout() {
   } else {
     return (
       <SafeAreaProvider>
-        <SafeAreaView style={{ flex: 1 }}>
-          <StatusBar backgroundColor={colors.blue} barStyle={"default"} />
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="(auth)" />
-          </Stack>
-        </SafeAreaView>
+        <AuthProvider>
+          <SafeAreaView style={{ flex: 1 }}>
+            <StatusBar backgroundColor={colors.blue} />
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" />
+              <Stack.Screen name="(auth)" />
+            </Stack>
+          </SafeAreaView>
+        </AuthProvider>
       </SafeAreaProvider>
     );
   }
