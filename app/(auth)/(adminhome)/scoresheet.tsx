@@ -1,7 +1,9 @@
+import { db } from "@/config/firebaseAppConfig";
 import { colors } from "@/constants/colors";
 import { useEvent } from "expo";
 import { useVideoPlayer, VideoView } from "expo-video";
-import { useState } from "react";
+import { child, get, ref, update } from "firebase/database";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Button,
@@ -19,38 +21,42 @@ import { RadioButton } from "react-native-paper";
 type InterviewStatus = "Pending" | "In Progress" | "Completed" | "Rejected";
 const STATUS_OPTIONS: any = ["Pending", "In Progress", "Completed", "Rejected"];
 
-const initialData: any = [
-  {
-    id: "1",
-    candidateName: "Asha Kumar",
-    title: "Frontend Engineer - React Native",
-    description: "Candidate applied for Senior React Native role",
-    question: "Explain how you optimize FlatList performance.",
-    interviewStatus: "In Progress",
-    videoUrl:
-      "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    comments: [
-      {
-        text: "Good explanation, gave examples.",
-        reviewer: "Reviewer 1",
-        date: "2025-09-12",
-      },
-    ],
-    score: 78,
-  },
-];
-
 export default function ReviewerQuestionsScreen() {
-  const [data, setData] = useState<any>(initialData);
+  const [data, setData] = useState<any>([]);
   const [selected, setSelected] = useState<any>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [scoreText, setScoreText] = useState("");
   const [selectstatus, setselectstatus] = useState("Pending");
 
+  useEffect(() => {
+    fetchScoreList();
+  }, []);
+
+  async function fetchScoreList() {
+    try {
+      const dbRef = ref(db);
+      const snapshot = await get(child(dbRef, "questions"));
+
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const formatted = Object.keys(data).map((key) => ({
+          id: key,
+          ...data[key],
+        }));
+        setData(formatted);
+      } else {
+        setData([]);
+      }
+    } catch (error) {
+      console.error("Error fetching data: ", error);
+    }
+  }
+
   function openModal(item: any) {
+    setselectstatus(item?.interviewstatus);
     setSelected(item);
-    setCommentText("");
+    setCommentText(item.comments != null ? String(item.comments) : "");
     setScoreText(item.score != null ? String(item.score) : "");
     setModalVisible(true);
   }
@@ -58,7 +64,13 @@ export default function ReviewerQuestionsScreen() {
   function saveCommentAndScore() {
     if (!selected) return;
 
-    if (scoreText.trim() !== "") {
+    if (commentText == "") {
+      Alert.alert("Error", "Please enter comments.");
+      return;
+    } else if (scoreText == "") {
+      Alert.alert("Invalid score", "Please enter a number between 0 and 100.");
+      return;
+    } else if (scoreText.trim() !== "") {
       const n = Number(scoreText);
       if (Number.isNaN(n) || n < 0 || n > 100) {
         Alert.alert(
@@ -67,15 +79,26 @@ export default function ReviewerQuestionsScreen() {
         );
         return;
       }
-
-      setData([]);
-      setModalVisible(false);
-      setSelected(null);
     }
+    handleUpdateAnswer();
   }
+  const handleUpdateAnswer = async () => {
+    const fields: any = {
+      comments: commentText,
+      score: Number(scoreText),
+      interviewstatus: selectstatus,
+      updatedAt: new Date().toISOString(),
+    };
+    const answerRef = await ref(db, `questions/${selected?.id}`);
+    await update(answerRef, fields);
+
+    setModalVisible(false);
+    setSelected(null);
+    fetchScoreList();
+  };
 
   function RenderItem({ item, index }: { item: any; index: number }) {
-    const player = useVideoPlayer({ uri: item?.videoUrl }, (player) => {
+    const player = useVideoPlayer({ uri: item?.video_url }, (player) => {
       player.loop = false;
       player.pause();
     });
@@ -88,14 +111,14 @@ export default function ReviewerQuestionsScreen() {
       <View style={styles.card}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.candidateName}>{item.candidateName}</Text>
+            <Text style={styles.candidateName}>{item.name}</Text>
             <Text style={styles.title}>{item.title}</Text>
           </View>
           <View style={styles.statusBadgeContainer}>
             <Text
-              style={[styles.statusBadge, statusColor(item.interviewStatus)]}
+              style={[styles.statusBadge, statusColor(item.interviewstatus)]}
             >
-              {item.interviewStatus}
+              {item.interviewstatus}
             </Text>
           </View>
         </View>
@@ -105,7 +128,7 @@ export default function ReviewerQuestionsScreen() {
         <Text style={styles.questionLabel}>Question:</Text>
         <Text style={styles.question}>{item.question}</Text>
 
-        {item.videoUrl ? (
+        {item.video_url ? (
           <View style={styles.videoContainer}>
             <VideoView
               style={styles.video}
@@ -145,7 +168,7 @@ export default function ReviewerQuestionsScreen() {
             <Text style={styles.smallLabel}>Comments</Text>
             <Text numberOfLines={1} style={styles.commentsPreview}>
               {item.comments && item.comments.length > 0
-                ? item.comments[item.comments.length - 1].text
+                ? item.comments
                 : "No comments"}
             </Text>
           </View>
@@ -179,7 +202,7 @@ export default function ReviewerQuestionsScreen() {
             <View style={{ width: "100%" }}>
               <Text style={styles.modalLabel}>Candidate</Text>
               <Text style={styles.modalValue}>
-                {selected.candidateName} — {selected.title}
+                {selected.name} — {selected.title}
               </Text>
 
               <Text style={styles.modalLabel}>Comment</Text>

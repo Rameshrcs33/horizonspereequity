@@ -1,4 +1,5 @@
 import { colors } from "@/constants/colors";
+import { useAuth } from "@/context/AuthContext";
 import { getData } from "@/hooks/asyncStorage";
 import { fetchUserData } from "@/hooks/RealtimeDatabase";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -6,6 +7,7 @@ import { Image, View } from "react-native";
 
 export default function SplashScreen() {
   const router: any = useRouter();
+  const { saveuserID } = useAuth();
 
   useFocusEffect(() => {
     fetchuserInfo();
@@ -18,7 +20,8 @@ export default function SplashScreen() {
     } catch (error) {}
     let res: any = null;
     if (uid != null) {
-      res = await fetchUserData(uid);
+      let tableName = `users/${uid}`;
+      res = await fetchUserData(tableName);
     }
     let timeout = 0;
     clearTimeout(timeout);
@@ -30,6 +33,7 @@ export default function SplashScreen() {
   const redirectUser = async (val: any, res: any) => {
     if (val != null) {
       if (res != null && res?.role == "User") {
+        await saveuserID(val);
         router.replace("/(userhome)");
       } else if (res != null && res?.role == "Reviewer") {
         router.replace("/(adminhome)");

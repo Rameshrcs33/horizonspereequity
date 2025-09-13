@@ -2,8 +2,8 @@ import { db } from "@/config/firebaseAppConfig";
 import { get, push, ref, set } from "firebase/database";
 import { Alert } from "react-native";
 
-export const fetchUserData = async (uid: string) => {
-  const snapshot = await get(ref(db, `users/${uid}`));
+export const fetchUserData = async (tableName: string) => {
+  const snapshot = await get(ref(db, tableName));
 
   if (snapshot.exists()) {
     return snapshot.val();

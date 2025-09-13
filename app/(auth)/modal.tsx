@@ -12,7 +12,7 @@ export default function CreateQuestion() {
   const [question, setQuestion] = useState("");
   const [description, setDescription] = useState("");
 
-  const { UserID, clearuserID } = useAuth();
+  const { UserID, clearuserID, UserName, clearuserName } = useAuth();
 
   useEffect(() => {
     const unsubscribe = BackHandler.addEventListener(
@@ -41,12 +41,13 @@ export default function CreateQuestion() {
   const submitForm = async () => {
     const payload = {
       userid: UserID,
+      name: UserName,
       title,
       question,
       description,
       interviewstatus: "Pending",
       comments: "",
-      scrore: 0,
+      score: 0,
       video_url: "",
       status: true,
       createdAt: new Date().toISOString(),
@@ -60,6 +61,7 @@ export default function CreateQuestion() {
     setQuestion("");
     setDescription("");
     clearuserID();
+    clearuserName();
     router.back();
   };
 

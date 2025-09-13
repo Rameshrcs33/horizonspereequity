@@ -1,5 +1,6 @@
 import { auth } from "@/config/firebaseAppConfig";
 import { colors } from "@/constants/colors";
+import { useAuth } from "@/context/AuthContext";
 import { removeData } from "@/hooks/asyncStorage";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import { useRouter } from "expo-router";
@@ -7,6 +8,7 @@ import { Alert, View, Text } from "react-native";
 
 export function LogoTitle({ title }: { title: string }) {
   const router: any = useRouter();
+  const { clearuserID } = useAuth();
 
   const logout = () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
@@ -14,6 +16,7 @@ export function LogoTitle({ title }: { title: string }) {
       {
         text: "OK",
         onPress: () => {
+          clearuserID();
           removeData();
           auth.signOut();
           router.replace("/login");

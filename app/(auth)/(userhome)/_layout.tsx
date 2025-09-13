@@ -22,7 +22,7 @@ export default function UserRootLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Questions",
+          title: "Interview",
           tabBarIcon: ({ color }) => (
             <FontAwesome size={28} name="code" color={color} />
           ),
@@ -31,7 +31,7 @@ export default function UserRootLayout() {
       <Tabs.Screen
         name="answersheet"
         options={{
-          title: "Answers",
+          title: "Answers / Score",
           tabBarIcon: ({ color }) => (
             <FontAwesome size={28} name="code" color={color} />
           ),

@@ -1,6 +1,7 @@
 import Loader from "@/components/Loader";
 import { auth, db } from "@/config/firebaseAppConfig";
 import { colors } from "@/constants/colors";
+import { useAuth } from "@/context/AuthContext";
 import { saveData } from "@/hooks/asyncStorage";
 import { fetchUserData } from "@/hooks/RealtimeDatabase";
 import { useRouter } from "expo-router";
@@ -24,6 +25,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loader, setLoader] = useState<boolean>(false);
+  const { saveuserID } = useAuth();
 
   const handleLogin = async () => {
     Keyboard.dismiss();
@@ -60,7 +62,8 @@ export default function LoginScreen() {
     saveData("name", res?.displayName);
     saveData("uid", res?.uid);
     saveData("accessToken", res?.stsTokenManager?.accessToken);
-    const responseData: any = await fetchUserData(res?.uid);
+    let tableName = `users/${res?.uid}`;
+    const responseData: any = await fetchUserData(tableName);
     setLoader(false);
     if (!responseData) {
       Alert.alert("Alert", "No user data found!");
@@ -71,6 +74,7 @@ export default function LoginScreen() {
       router.replace("/(adminhome)");
     }
     if (responseData?.role == "User") {
+      await saveuserID(res?.uid);
       router.replace("/(userhome)");
     }
   };

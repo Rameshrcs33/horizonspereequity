@@ -13,7 +13,7 @@ export default function CandidateList() {
   const isFocused = useIsFocused();
 
   const [Users, setUsers] = useState<any>([]);
-  const { saveuserID } = useAuth();
+  const { saveuserID, saveuserName } = useAuth();
 
   useEffect(() => {
     fetchUsers();
@@ -43,6 +43,7 @@ export default function CandidateList() {
 
   const handleCreateQuestion = (item: any) => {
     saveuserID(item?.id);
+    saveuserName(item?.name);
     router.push("/modal");
   };
 
