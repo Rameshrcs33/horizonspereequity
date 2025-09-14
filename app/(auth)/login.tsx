@@ -1,12 +1,11 @@
 import Loader from "@/components/Loader";
-import { auth, db } from "@/config/firebaseAppConfig";
+import { auth } from "@/config/firebaseAppConfig";
 import { colors } from "@/constants/colors";
 import { useAuth } from "@/context/AuthContext";
 import { saveData } from "@/hooks/asyncStorage";
 import { fetchUserData } from "@/hooks/RealtimeDatabase";
 import { useRouter } from "expo-router";
 import { reload, signInWithEmailAndPassword } from "firebase/auth";
-import { get, ref } from "firebase/database";
 import { useState } from "react";
 import {
   Alert,
