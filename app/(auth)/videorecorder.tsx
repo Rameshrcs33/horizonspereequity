@@ -1,112 +1,169 @@
+import Loader from "@/components/Loader";
+import { db, storage } from "@/config/firebaseAppConfig";
+import { colors } from "@/constants/colors";
+import { useAuth } from "@/context/AuthContext";
+import { Camera, CameraType, CameraView } from "expo-camera";
+import { useRouter } from "expo-router";
+import { ref as databaseRef, update } from "firebase/database";
 import {
-  Camera,
-  CameraType,
-  useCameraPermissions,
-  CameraView,
-} from "expo-camera";
-import * as MediaLibrary from "expo-media-library";
+  getDownloadURL,
+  ref as storageRef,
+  uploadBytes,
+} from "firebase/storage";
 import { useEffect, useRef, useState } from "react";
-import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Button, Linking, StyleSheet, Text, View } from "react-native";
 
-export default function VideoRecorder() {
-  const cameraRef = useRef<CameraView>(null);
-  const [recording, setRecording] = useState<boolean>(false);
-  const [videoUri, setVideoUri] = useState<string | null>(null);
-  const [facing, setFacing] = useState<CameraType>("front");
-  const [permission, requestPermission] = useCameraPermissions();
+export default function App() {
+  const router: any = useRouter();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [cameraReady, setCameraReady] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const cameraRef = useRef<CameraView>(null);
+  const [facing, setFacing] = useState<CameraType>("front");
+  const [videoUri, setVideoUri] = useState<string | null>(null);
+  const [loader, setLoader] = useState<boolean>(false);
+
+  const { QuestionID, clearquestionID } = useAuth();
 
   useEffect(() => {
-    (async () => {
-      const { status: cameraStatus } =
-        await Camera.requestCameraPermissionsAsync();
-
-      const { status: audioStatus } =
-        await Camera.requestMicrophonePermissionsAsync();
-
-      setHasPermission(cameraStatus === "granted" && audioStatus === "granted");
-    })();
+    setVideoUri(null);
+    checkPermissions();
   }, []);
 
-  if (hasPermission === null) {
-    return <Text>Requesting for camera permission...</Text>;
-  }
-  if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
-  }
+  const checkPermissions = async () => {
+    const { status: cameraStatus } =
+      await Camera.requestCameraPermissionsAsync();
+    const { status: micStatus } =
+      await Camera.requestMicrophonePermissionsAsync();
 
-  if (!permission) {
-    return <View />;
-  }
+    setHasPermission(cameraStatus === "granted" && micStatus === "granted");
+  };
 
-  if (!permission.granted) {
-    return (
-      <View style={styles.container}>
-        <Text style={{ textAlign: "center" }}>
-          We need your permission to show the camera
-        </Text>
-        <Button onPress={requestPermission} title="Grant permission" />
-      </View>
-    );
-  }
+  const openSettings = () => {
+    Linking.openSettings();
+  };
 
-  const startRecording = async () => {
+  const uriToBlob = async (uri: any) => {
+    const response = await fetch(uri);
+    return await response.blob();
+  };
+
+  const uploadVideoToFirebase = async (uri: any) => {
+    setLoader(true);
+    try {
+      const blob = await uriToBlob(uri);
+      const filename = `videos/${Date.now()}.mp4`;
+      const videoRef = storageRef(storage, filename);
+
+      await uploadBytes(videoRef, blob);
+      const downloadURL = await getDownloadURL(videoRef);
+      updateanswerwithVideo(downloadURL);
+    } catch (error: any) {
+      setLoader(false);
+      Alert.alert("Upload failed", error.message);
+    }
+  };
+
+  const updateanswerwithVideo = async (url: any) => {
+    const fields: any = {
+      video_url: url,
+      interviewstatus: "In Progress",
+      updatedAt: new Date().toISOString(),
+    };
+    const answerRef = databaseRef(db, `questions/${QuestionID}`);
+    await update(answerRef, fields);
+    setVideoUri(null);
+    Alert.alert("Success", "Video uploaded successfully!");
+    setLoader(false);
+    clearquestionID();
+    router.back();
+  };
+
+  const recordVideo = async () => {
+    setVideoUri(null);
     if (cameraRef.current) {
       try {
-        const videoRecordPromise = cameraRef.current.recordAsync();
-        await setRecording(true);
+        setIsRecording(true);
+        const video: any = await cameraRef.current.recordAsync({
+          maxDuration: 120,
+        });
 
-        const data = await videoRecordPromise;
-        if (data && data.uri) {
-          console.log("Video recording completed", data.uri);
-          await MediaLibrary.createAssetAsync(data.uri);
-        } else {
-          console.error("Video recording failed: No data returned.");
-        }
+        console.log("Video recorded:", video.uri);
+        setVideoUri(video?.uri);
       } catch (error) {
-        console.error("Error recording video:", error);
+        console.error("Recording error:", error);
+      } finally {
+        setIsRecording(false);
       }
     }
   };
 
   const stopRecording = async () => {
     if (cameraRef.current) {
-      try {
-        await cameraRef.current.stopRecording();
-        await setRecording(false);
-      } catch (error) {
-        console.error("Error stopping recording:", error);
-      }
+      cameraRef.current.stopRecording();
     }
   };
 
-  function handleRecord() {
-    if (!recording) {
-      startRecording();
-    } else {
-      stopRecording();
-    }
+  if (hasPermission === null) {
+    return <Text>Checking permissions...</Text>;
   }
 
-  function toggleCameraFacing() {
-    setFacing((current) => (current === "back" ? "front" : "back"));
+  if (hasPermission === false) {
+    return (
+      <View>
+        <Text>No access to camera/mic</Text>
+        <Button title="Re-request Permission" onPress={checkPermissions} />
+        <Button title="Open Settings" onPress={openSettings} />
+      </View>
+    );
   }
 
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} ref={cameraRef} facing={facing} />
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={handleRecord}>
-          <Text style={styles.text}>
-            {recording ? "Stop Recording" : "Start Recording"}
-          </Text>
-        </TouchableOpacity>
+      <CameraView
+        style={styles.camera}
+        mode="video"
+        facing={facing}
+        flash={"auto"}
+        ref={cameraRef}
+        onCameraReady={() => setCameraReady(true)}
+      />
+
+      <View style={styles.controls}>
+        <>
+          {isRecording ? (
+            <Button title="Stop" onPress={stopRecording} color={colors.red} />
+          ) : (
+            <Button
+              title="Record"
+              onPress={recordVideo}
+              disabled={!cameraReady}
+              color={colors.blue}
+            />
+          )}
+        </>
         <View style={{ marginHorizontal: 10 }} />
-        <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
-          <Text style={styles.text}>Flip Camera</Text>
-        </TouchableOpacity>
+
+        <>
+          {videoUri != null ? (
+            <Button
+              title="Upload"
+              onPress={() => uploadVideoToFirebase(videoUri)}
+              color={colors.blue}
+            />
+          ) : (
+            <Button
+              title="Flip Camera"
+              onPress={() =>
+                setFacing((prev) => (prev == "front" ? "back" : "front"))
+              }
+              disabled={!cameraReady}
+              color={colors.blue}
+            />
+          )}
+        </>
       </View>
-      {videoUri && <Text>Video Recorded: {videoUri}</Text>}
+      <Loader Visible={loader} />
     </View>
   );
 }
@@ -114,23 +171,17 @@ export default function VideoRecorder() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
   },
   camera: {
     flex: 1,
   },
-  buttonContainer: {
+  controls: {
+    backgroundColor: "transparent",
     flexDirection: "row",
     justifyContent: "center",
-    padding: 20,
-  },
-  button: {
-    backgroundColor: "blue",
-    padding: 15,
-    borderRadius: 10,
-  },
-  text: {
-    color: "white",
-    fontSize: 18,
+    position: "absolute",
+    bottom: 40,
+    zIndex: 10,
+    width: "100%",
   },
 });

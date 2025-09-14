@@ -21,7 +21,7 @@ export default function InterviewScreen() {
   const [ModalVisible, setModalVisible] = useState<boolean>(false);
   const router: any = useRouter();
 
-  const { UserID } = useAuth();
+  const { UserID, savequestionID } = useAuth();
 
   useEffect(() => {
     if (!UserID) return;
@@ -88,6 +88,7 @@ export default function InterviewScreen() {
   );
 
   const onselectItem = (item: any) => {
+    savequestionID(item?.id);
     setSelected(item);
     setModalVisible(true);
   };

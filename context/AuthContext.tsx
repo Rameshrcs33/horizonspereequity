@@ -7,6 +7,9 @@ type AuthContextType = {
   UserName: string | null;
   saveuserName: (val: string) => void;
   clearuserName: () => void;
+  QuestionID: any | null;
+  savequestionID: (val: any) => void;
+  clearquestionID: () => void;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -16,6 +19,14 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [UserID, setUserID] = useState<any | null>(null);
   const [UserName, setUserName] = useState<string | null>(null);
+  const [QuestionID, setQuestionID] = useState<any | null>(null);
+
+  const savequestionID = (val: any) => {
+    setQuestionID(val);
+  };
+  const clearquestionID = () => {
+    setQuestionID(null);
+  };
 
   const saveuserID = (val: any) => {
     setUserID(val);
@@ -40,6 +51,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     UserName,
     saveuserName,
     clearuserName,
+    QuestionID,
+    savequestionID,
+    clearquestionID,
   };
 
   return (
