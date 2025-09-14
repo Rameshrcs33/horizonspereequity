@@ -18,7 +18,27 @@ Reviewer: view submissions and leave scores/comments.
 - Reviewer score and comments module.
 - User answer recording module with expo-av or expo-video
 - User answer list module with video and interviewer scrore and comments
-### Firebase
-- Realtime databse -  For reviewer question, score and comments
-- Storage - For user answer videos
-- Authentication - For login or signup
+
+## Implemented Features
+
+### Firebase Authentication
+
+Login / Signup flow for both Candidate and Reviewer modules
+
+User records stored with authentication
+
+Email OTP verification after signup (note: verification emails may go to the spam folder)
+
+### Firebase Realtime Database
+
+User record storing
+
+Question creation record storing
+
+Answer record storing
+
+Comment & score record storing
+
+### Firebase Storage
+
+Interview video uploading & storing
