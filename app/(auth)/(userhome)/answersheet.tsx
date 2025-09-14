@@ -1,8 +1,9 @@
 import { db } from "@/config/firebaseAppConfig";
 import { useAuth } from "@/context/AuthContext";
-import { ResizeMode, Video } from "expo-av";
+import { useEvent } from "expo";
+import { useVideoPlayer, VideoView } from "expo-video";
 import { equalTo, get, orderByChild, query, ref } from "firebase/database";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   Image,
@@ -85,7 +86,6 @@ const AnswerCard: React.FC<{
 export default function AnswerListScreen() {
   const [data, setData] = useState<any>([]);
   const [playingUri, setPlayingUri] = useState<string | null>(null);
-  const videoRef = useRef<Video | null>(null);
   const { UserID } = useAuth();
 
   useEffect(() => {
@@ -106,11 +106,13 @@ export default function AnswerListScreen() {
 
       if (snapshot.exists()) {
         const data = snapshot.val();
-        const formatted = Object.keys(data).map((key) => ({
-          id: key,
-          ...data[key],
-        }));
-        console.log("Fetched answers:");
+        const formatted = Object.keys(data)
+          .map((key) => ({
+            id: key,
+            ...data[key],
+          }))
+          .filter((item) => item.interviewstatus != "Pending");
+
         setData(formatted);
       } else {
         setData([]);
@@ -124,10 +126,20 @@ export default function AnswerListScreen() {
     setPlayingUri(uri);
   };
 
+  const player = useVideoPlayer(playingUri, (player) => {
+    player.loop = true;
+    player.play();
+  });
+
+  const { isPlaying } = useEvent(player, "playingChange", {
+    isPlaying: player.playing,
+  });
+
   const closeVideo = () => {
-    if (videoRef.current) {
-      videoRef.current.pauseAsync().catch(() => {});
+    if (isPlaying) {
+      player.pause();
     }
+
     setPlayingUri(null);
   };
 
@@ -162,16 +174,11 @@ export default function AnswerListScreen() {
           </Pressable>
 
           {playingUri ? (
-            <Video
-              ref={(ref: any) => (videoRef.current = ref)}
-              source={{ uri: playingUri }}
-              rate={1.0}
-              volume={1.0}
-              isMuted={false}
-              resizeMode={ResizeMode.CONTAIN}
-              shouldPlay
-              useNativeControls
+            <VideoView
               style={styles.videoPlayer}
+              player={player}
+              allowsFullscreen
+              allowsPictureInPicture
             />
           ) : null}
         </View>
