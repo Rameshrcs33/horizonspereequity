@@ -1,8 +1,9 @@
 import { db } from "@/config/firebaseAppConfig";
 import { useAuth } from "@/context/AuthContext";
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { equalTo, get, orderByChild, query, ref } from "firebase/database";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -21,13 +22,18 @@ export default function InterviewScreen() {
   const [ModalVisible, setModalVisible] = useState<boolean>(false);
   const router: any = useRouter();
 
-  const { UserID, savequestionID } = useAuth();
+  const { UserID, savequestionID, QuestionID } = useAuth();
 
-  useEffect(() => {
-    if (!UserID) return;
-    fetchanswers();
-  }, [UserID]);
-
+  useFocusEffect(
+    useCallback(() => {
+      if (!UserID) return;
+      fetchanswers();
+      return () => {
+        console.log("Home tab unfocused");
+      };
+    }, [UserID, QuestionID])
+  );
+  
   const fetchanswers = async () => {
     try {
       const usersRef = ref(db, "questions");

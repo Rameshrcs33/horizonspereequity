@@ -1,9 +1,10 @@
 import { db } from "@/config/firebaseAppConfig";
 import { useAuth } from "@/context/AuthContext";
+import { useFocusEffect } from "@react-navigation/native";
 import { useEvent } from "expo";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { equalTo, get, orderByChild, query, ref } from "firebase/database";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   FlatList,
   Image,
@@ -86,12 +87,17 @@ const AnswerCard: React.FC<{
 export default function AnswerListScreen() {
   const [data, setData] = useState<any>([]);
   const [playingUri, setPlayingUri] = useState<string | null>(null);
-  const { UserID } = useAuth();
+  const { UserID, QuestionID } = useAuth();
 
-  useEffect(() => {
-    if (!UserID) return;
-    fetchanswers();
-  }, [UserID]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!UserID) return;
+      fetchanswers();
+      return () => {
+        console.log("Home tab unfocused");
+      };
+    }, [UserID, QuestionID])
+  );
 
   const fetchanswers = async () => {
     try {
