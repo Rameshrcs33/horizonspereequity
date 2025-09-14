@@ -1,5 +1,5 @@
 import Loader from "@/components/Loader";
-import { auth } from "@/config/firebaseAppConfig";
+import { auth } from "../../config/firebaseAppConfig";
 import { colors } from "@/constants/colors";
 import { useAuth } from "@/context/AuthContext";
 import { saveData } from "@/hooks/asyncStorage";

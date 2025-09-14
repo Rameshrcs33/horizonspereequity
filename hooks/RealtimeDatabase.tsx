@@ -1,4 +1,4 @@
-import { db } from "@/config/firebaseAppConfig";
+import { db } from "../config/firebaseAppConfig";
 import { get, push, ref, set } from "firebase/database";
 import { Alert } from "react-native";
 

@@ -1,4 +1,4 @@
-import { db } from "@/config/firebaseAppConfig";
+import { db } from "../../../config/firebaseAppConfig";
 import { colors } from "@/constants/colors";
 import { useEvent } from "expo";
 import { useVideoPlayer, VideoView } from "expo-video";

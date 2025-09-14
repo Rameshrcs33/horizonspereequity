@@ -1,5 +1,5 @@
 import Loader from "@/components/Loader";
-import { db, storage } from "@/config/firebaseAppConfig";
+import { db, storage } from "../../config/firebaseAppConfig";
 import { colors } from "@/constants/colors";
 import { useAuth } from "@/context/AuthContext";
 import { Camera, CameraType, CameraView } from "expo-camera";

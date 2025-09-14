@@ -1,4 +1,4 @@
-import { db } from "@/config/firebaseAppConfig";
+import { db } from "../../../config/firebaseAppConfig";
 import { useAuth } from "@/context/AuthContext";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";

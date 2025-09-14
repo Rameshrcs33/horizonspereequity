@@ -1,6 +1,6 @@
 import CustomRadioButton from "@/components/CustomRadioButton";
 import Loader from "@/components/Loader";
-import { auth } from "@/config/firebaseAppConfig";
+import { auth } from "../../config/firebaseAppConfig";
 import { colors } from "@/constants/colors";
 import { insertUserData } from "@/hooks/RealtimeDatabase";
 import { useRouter } from "expo-router";

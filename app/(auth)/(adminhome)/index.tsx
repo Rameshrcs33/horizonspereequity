@@ -1,4 +1,4 @@
-import { db } from "@/config/firebaseAppConfig";
+import { db } from "../../../config/firebaseAppConfig";
 import { colors } from "@/constants/colors";
 import { useAuth } from "@/context/AuthContext";
 import { useIsFocused } from "@react-navigation/native";

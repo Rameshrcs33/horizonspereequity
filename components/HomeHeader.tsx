@@ -1,4 +1,4 @@
-import { auth } from "@/config/firebaseAppConfig";
+import { auth } from "../config/firebaseAppConfig";
 import { colors } from "@/constants/colors";
 import { useAuth } from "@/context/AuthContext";
 import { removeData } from "@/hooks/asyncStorage";
