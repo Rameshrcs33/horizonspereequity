@@ -1,9 +1,9 @@
-import { db } from "../../../config/firebaseAppConfig";
 import { colors } from "@/constants/colors";
+import { useFocusEffect } from "@react-navigation/native";
 import { useEvent } from "expo";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { child, get, ref, update } from "firebase/database";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Alert,
   Button,
@@ -17,6 +17,7 @@ import {
   View,
 } from "react-native";
 import { RadioButton } from "react-native-paper";
+import { db } from "../../../config/firebaseAppConfig";
 
 type InterviewStatus = "Pending" | "In Progress" | "Completed" | "Rejected";
 const STATUS_OPTIONS: any = ["Pending", "In Progress", "Completed", "Rejected"];
@@ -29,9 +30,11 @@ export default function ReviewerQuestionsScreen() {
   const [scoreText, setScoreText] = useState("");
   const [selectstatus, setselectstatus] = useState("Pending");
 
-  useEffect(() => {
-    fetchScoreList();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchScoreList();
+    }, [])
+  );
 
   async function fetchScoreList() {
     try {
